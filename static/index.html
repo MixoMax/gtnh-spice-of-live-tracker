@@ -5,47 +5,97 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GTNH Spice of Life Stats</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Include Chart.js for the Donut Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <header>
-        <h1>GTNH Spice of Life Live Stats</h1>
+        <h1>GTNH Spice of Life Tracker</h1>
     </header>
     <main>
         <section id="players-section">
             <h2>Active Players</h2>
-            <div id="players-list" class="grid">
-                <!-- Javascript injects player cards here -->
-            </div>
+            <div id="players-list" class="grid"></div>
         </section>
         
         <section id="stats-section" style="display: none;">
             <button id="back-btn">← Back to Players</button>
             <div id="player-header"></div>
             
-            <div class="stats-grid">
-                <div class="card">
-                    <h3>Summary</h3>
-                    <p class="summary-big">Total Foods Eaten: <span id="total-eaten" style="color: var(--primary-color);">0</span></p>
+            <!-- LIVE TRACKER (Mirrors Google Sheet Overview) -->
+            <div class="tracker-container">
+                <div class="tracker-main card">
+                    <h3>LIVE TRACKER</h3>
+                    <div class="chart-wrapper big-chart">
+                        <canvas id="main-chart"></canvas>
+                        <div class="chart-center" id="main-percent">0%</div>
+                    </div>
+                    <div class="tracker-stats-row">
+                        <div>
+                            <span id="main-rem" class="stat-num">0</span> Remaining<br>
+                            <span id="main-obt" class="stat-num highlight">0</span> Obtained
+                        </div>
+                        <div>
+                            <span id="hearts-rem" class="stat-num">0</span> Hearts Remaining<br>
+                            <span id="hearts-obt" class="stat-num highlight red">0</span> Hearts Obtained
+                        </div>
+                        <div>
+                            <span class="stat-num">50</span> Shanks per Heart<br>
+                            <span id="until-next" class="stat-num highlight yellow">0</span> Until Next Heart
+                        </div>
+                    </div>
                 </div>
-                <div class="card">
-                    <h3>Categories (Eaten by Mod)</h3>
-                    <ul id="category-list"></ul>
+
+                <!-- TIERS TRACKERS -->
+                <div class="tiers-grid card">
+                    <div class="tier-col">
+                        <h4>T1 (Raw)</h4>
+                        <div class="chart-wrapper small-chart">
+                            <canvas id="t1-chart"></canvas>
+                            <div class="chart-center" id="t1-percent">0%</div>
+                        </div>
+                        <p><strong id="t1-rem">0</strong> Remaining<br><span class="highlight" id="t1-obt">0</span> Obtained</p>
+                    </div>
+                    <div class="tier-col">
+                        <h4>T2 (Basic)</h4>
+                        <div class="chart-wrapper small-chart">
+                            <canvas id="t2-chart"></canvas>
+                            <div class="chart-center" id="t2-percent">0%</div>
+                        </div>
+                        <p><strong id="t2-rem">0</strong> Remaining<br><span class="highlight" id="t2-obt">0</span> Obtained</p>
+                    </div>
+                    <div class="tier-col">
+                        <h4>T3 (Intermediate)</h4>
+                        <div class="chart-wrapper small-chart">
+                            <canvas id="t3-chart"></canvas>
+                            <div class="chart-center" id="t3-percent">0%</div>
+                        </div>
+                        <p><strong id="t3-rem">0</strong> Remaining<br><span class="highlight" id="t3-obt">0</span> Obtained</p>
+                    </div>
+                    <div class="tier-col">
+                        <h4>T4 (Advanced)</h4>
+                        <div class="chart-wrapper small-chart">
+                            <canvas id="t4-chart"></canvas>
+                            <div class="chart-center" id="t4-percent">0%</div>
+                        </div>
+                        <p><strong id="t4-rem">0</strong> Remaining<br><span class="highlight" id="t4-obt">0</span> Obtained</p>
+                    </div>
                 </div>
             </div>
             
-            <div class="card full-width">
+            <div class="card full-width" style="margin-top: 1.5rem;">
                 <h3>History Detail</h3>
                 <div class="table-container">
                     <table id="foods-table">
                         <thead>
                             <tr>
-                                <th>Name / Raw Tag</th>
-                                <th>Mod Category</th>
-                                <th>Hunger (Half-shanks)</th>
+                                <th>Name</th>
+                                <th>Tier Category</th>
+                                <th>Mod</th>
+                                <th>Shanks</th>
                             </tr>
                         </thead>
-                        <tbody>
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
