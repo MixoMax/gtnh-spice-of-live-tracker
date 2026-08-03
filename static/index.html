@@ -5,97 +5,81 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GTNH Spice of Life Stats</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Include Chart.js for the Donut Charts -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <header>
-        <h1>GTNH Spice of Life Tracker</h1>
+        <h1>GTNH Spice of Life Live Tracker</h1>
     </header>
     <main>
         <section id="players-section">
             <h2>Active Players</h2>
-            <div id="players-list" class="grid"></div>
+            <div id="players-list" class="grid">
+                <!-- Javascript injects player cards here -->
+            </div>
         </section>
         
         <section id="stats-section" style="display: none;">
             <button id="back-btn">← Back to Players</button>
             <div id="player-header"></div>
             
-            <!-- LIVE TRACKER (Mirrors Google Sheet Overview) -->
-            <div class="tracker-container">
-                <div class="tracker-main card">
+            <!-- GOOGLE SHEETS REPLICATION LAYOUT -->
+            <div class="dashboard-grid">
+                <!-- LIVE TRACKER (Top Wide Card) -->
+                <div class="card full-width live-tracker">
                     <h3>LIVE TRACKER</h3>
-                    <div class="chart-wrapper big-chart">
-                        <canvas id="main-chart"></canvas>
-                        <div class="chart-center" id="main-percent">0%</div>
+                    <div class="tracker-layout">
+                        <div class="tracker-left">
+                            <div><strong>Obtained</strong></div>
+                            <div class="pct-big" id="overall-pct">0.0%</div>
+                        </div>
+                        
+                        <!-- MAIN DONUT -->
+                        <div class="donut donut-main" id="overall-donut" style="--pct: 0%">
+                            <div class="donut-content" id="overall-donut-pct">0.0%</div>
+                        </div>
+
+                        <div class="tracker-right">
+                            <div style="text-align: right"><strong>Remaining</strong></div>
+                            <div class="pct-big" id="overall-remaining-pct" style="color: #999; text-align: right;">100.0%</div>
+                        </div>
                     </div>
-                    <div class="tracker-stats-row">
+                    
+                    <div class="tracker-footer">
                         <div>
-                            <span id="main-rem" class="stat-num">0</span> Remaining<br>
-                            <span id="main-obt" class="stat-num highlight">0</span> Obtained
+                            <span class="stat-num" id="shanks-remaining">0</span> Shanks Remaining<br>
+                            <span class="stat-num stat-orange" id="shanks-obtained">0</span> Shanks Obtained
                         </div>
-                        <div>
-                            <span id="hearts-rem" class="stat-num">0</span> Hearts Remaining<br>
-                            <span id="hearts-obt" class="stat-num highlight red">0</span> Hearts Obtained
+                        <div style="text-align: center;">
+                            <span class="stat-num" id="hearts-remaining">0</span> Hearts Remaining<br>
+                            <span class="stat-num stat-red" id="hearts-obtained">0</span> Hearts Obtained
                         </div>
-                        <div>
+                        <div style="text-align: right;">
                             <span class="stat-num">50</span> Shanks per Heart<br>
-                            <span id="until-next" class="stat-num highlight yellow">0</span> Until Next Heart
+                            <span class="stat-num stat-gold" id="until-next">0</span> Until Next Heart
                         </div>
                     </div>
                 </div>
 
-                <!-- TIERS TRACKERS -->
-                <div class="tiers-grid card">
-                    <div class="tier-col">
-                        <h4>T1 (Raw)</h4>
-                        <div class="chart-wrapper small-chart">
-                            <canvas id="t1-chart"></canvas>
-                            <div class="chart-center" id="t1-percent">0%</div>
-                        </div>
-                        <p><strong id="t1-rem">0</strong> Remaining<br><span class="highlight" id="t1-obt">0</span> Obtained</p>
-                    </div>
-                    <div class="tier-col">
-                        <h4>T2 (Basic)</h4>
-                        <div class="chart-wrapper small-chart">
-                            <canvas id="t2-chart"></canvas>
-                            <div class="chart-center" id="t2-percent">0%</div>
-                        </div>
-                        <p><strong id="t2-rem">0</strong> Remaining<br><span class="highlight" id="t2-obt">0</span> Obtained</p>
-                    </div>
-                    <div class="tier-col">
-                        <h4>T3 (Intermediate)</h4>
-                        <div class="chart-wrapper small-chart">
-                            <canvas id="t3-chart"></canvas>
-                            <div class="chart-center" id="t3-percent">0%</div>
-                        </div>
-                        <p><strong id="t3-rem">0</strong> Remaining<br><span class="highlight" id="t3-obt">0</span> Obtained</p>
-                    </div>
-                    <div class="tier-col">
-                        <h4>T4 (Advanced)</h4>
-                        <div class="chart-wrapper small-chart">
-                            <canvas id="t4-chart"></canvas>
-                            <div class="chart-center" id="t4-percent">0%</div>
-                        </div>
-                        <p><strong id="t4-rem">0</strong> Remaining<br><span class="highlight" id="t4-obt">0</span> Obtained</p>
-                    </div>
+                <!-- 4 TIER CHARTS -->
+                <div id="tier-charts-container" class="tier-charts-grid full-width">
+                    <!-- Javascript injects tier charts here -->
                 </div>
             </div>
-            
+
+            <!-- DETAIL TABLE -->
             <div class="card full-width" style="margin-top: 1.5rem;">
-                <h3>History Detail</h3>
+                <h3>History Detail & Tier Progress</h3>
                 <div class="table-container">
                     <table id="foods-table">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Tier Category</th>
-                                <th>Mod</th>
-                                <th>Shanks</th>
+                                <th>Name / Raw Tag</th>
+                                <th>Matched Tier</th>
+                                <th>Base Hunger</th>
                             </tr>
                         </thead>
-                        <tbody></tbody>
+                        <tbody>
+                        </tbody>
                     </table>
                 </div>
             </div>
