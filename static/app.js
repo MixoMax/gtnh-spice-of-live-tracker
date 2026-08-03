@@ -1,8 +1,15 @@
+================================================
+FILE: static/app.js
+================================================
 import { Repository } from 'https://shadowtheage.github.io/gtnh/repository.js';
 import { ungzip } from 'https://cdn.jsdelivr.net/npm/pako@2.1.0/+esm';
 
 let repo = null;
 let tiersDB = null;
+
+let currentTracker = null;
+let currentTiersDB = null;
+let currentSelectedTier = "T1 (Raw)";
 
 async function loadRepo() {
     if (repo) return repo;
@@ -123,6 +130,7 @@ async function loadPlayers() {
         const res = await fetch("/api/players");
         const data = await res.json();
         const list = document.getElementById("players-list");
+        list.innerHTML = "";
         
         data.players.forEach(p => {
             const card = document.createElement("div");
@@ -141,17 +149,13 @@ async function loadPlayers() {
     }
 }
 
-function getBadgeClass(tier) {
-    if (tier.includes("T1")) return "badge-t1";
-    if (tier.includes("T2")) return "badge-t2";
-    if (tier.includes("T3")) return "badge-t3";
-    if (tier.includes("T4")) return "badge-t4";
-    return "badge-other";
-}
-
 async function showStats(player) {
     document.getElementById("players-section").style.display = "none";
     document.getElementById("stats-section").style.display = "block";
+    
+    // Switch to skeleton view
+    document.getElementById("stats-content").style.display = "none";
+    document.getElementById("stats-skeleton").style.display = "block";
     
     document.getElementById("player-header").innerHTML = `
         <div class="player-header-flex">
@@ -159,16 +163,12 @@ async function showStats(player) {
             <div><h2>${player.name}'s Tracker</h2><p style="color:#aaa;">${player.uuid}</p></div>
         </div>`;
     
-    const tbody = document.getElementById("foods-table").querySelector("tbody");
-    tbody.innerHTML = "<tr><td colspan='3'>Crunching NBT Data and Database Mapping...</td></tr>";
-    
     try {
         const [resStats, tiersBackend] = await Promise.all([
             fetch(`/api/stats/${player.uuid}`).then(x => x.json()),
             loadTiers()
         ]);
         
-        // Prepare tier progression objects
         const tracker = {
             total_overall_shanks: 0,
             obtained_overall_shanks: 0,
@@ -194,45 +194,34 @@ async function showStats(player) {
         }));
 
         // 2. Cross reference with Tier Database
-        tbody.innerHTML = "";
-        
-        // Sort for table display (mostly chronological, but you could sort by Tier)
         for (const f of resolvedFoods) {
             const fullName = f.name + ' ' + f.modshort;
             const shortName = f.name;
-            
-            let matchedTier = "Untracked";
-            let shanks = f.hunger;
 
             for (const [tierName, tierData] of Object.entries(tiersBackend)) {
-                // Same logic Google Sheet uses: try fullName, then shortName
                 const foundShanks = tierData.foods[fullName] !== undefined ? tierData.foods[fullName] : 
                                    (tierData.foods[shortName] !== undefined ? tierData.foods[shortName] : null);
                 
                 if (foundShanks !== null) {
-                    matchedTier = tierName;
-                    shanks = foundShanks;
-                    
-                    // Prevent double counting if eaten twice
                     const matchKey = tierData.foods[fullName] !== undefined ? fullName : shortName;
+                    
                     if (!tracker.tiers[tierName].matched_items.has(matchKey)) {
                         tracker.tiers[tierName].matched_items.add(matchKey);
-                        tracker.tiers[tierName].obtained_shanks += shanks;
-                        tracker.obtained_overall_shanks += shanks;
+                        tracker.tiers[tierName].obtained_shanks += foundShanks;
+                        tracker.obtained_overall_shanks += foundShanks;
                     }
                     break;
                 }
             }
-            
-            // Build table row
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td><strong>${f.name}</strong> <small style="color:#aaa">${f.modshort}</small><br><small style="color:#555">${f.tag}:${f.damage}</small></td>
-                <td><span class="badge ${getBadgeClass(matchedTier)}">${matchedTier}</span></td>
-                <td>${shanks}</td>
-            `;
-            tbody.appendChild(tr);
         }
+        
+        // Expose globally for switching tiers
+        currentTracker = tracker;
+        currentTiersDB = tiersBackend;
+
+        // Switch to content view
+        document.getElementById("stats-skeleton").style.display = "none";
+        document.getElementById("stats-content").style.display = "block";
 
         // 3. Render Top Dashboard (Live Tracker)
         const total = tracker.total_overall_shanks;
@@ -284,8 +273,69 @@ async function showStats(player) {
             chartsContainer.appendChild(card);
         });
 
+        // 5. Render Tier Selector and Table
+        renderTierSelector();
+        renderTierTable(currentSelectedTier);
+
     } catch (e) {
         console.error("Error generating stats:", e);
-        tbody.innerHTML = "<tr><td colspan='3' style='color:red;'>An error occurred. See console.</td></tr>";
+        document.getElementById("stats-skeleton").innerHTML = "<p style='color:red;'>An error occurred loading stats.</p>";
     }
+}
+
+function renderTierSelector() {
+    const selector = document.getElementById("tier-selector");
+    selector.innerHTML = "";
+    const tiers = Object.keys(currentTiersDB);
+    
+    if (!tiers.includes(currentSelectedTier)) {
+        currentSelectedTier = tiers[0];
+    }
+    
+    tiers.forEach(tier => {
+        const btn = document.createElement("button");
+        btn.textContent = tier;
+        btn.className = (tier === currentSelectedTier) ? "active" : "";
+        btn.addEventListener("click", () => {
+            currentSelectedTier = tier;
+            renderTierSelector(); 
+            renderTierTable(tier);
+        });
+        selector.appendChild(btn);
+    });
+}
+
+function renderTierTable(tier) {
+    const tbody = document.getElementById("foods-table").querySelector("tbody");
+    tbody.innerHTML = "";
+    
+    if (!currentTiersDB || !currentTracker) return;
+    
+    const tierData = currentTiersDB[tier];
+    const matchedSet = currentTracker.tiers[tier].matched_items;
+    
+    const foods = Object.entries(tierData.foods);
+    
+    // Sort logic to easily find missing foods! 
+    // Missing foods (false) appear at the top, then sorts by name
+    foods.sort((a, b) => {
+        const aEaten = matchedSet.has(a[0]);
+        const bEaten = matchedSet.has(b[0]);
+        if (aEaten === bEaten) {
+            return a[0].localeCompare(b[0]);
+        }
+        return aEaten ? 1 : -1;
+    });
+
+    foods.forEach(([foodName, shanks]) => {
+        const isEaten = matchedSet.has(foodName);
+        const tr = document.createElement("tr");
+        
+        tr.innerHTML = `
+            <td><strong>${foodName}</strong></td>
+            <td>${shanks}</td>
+            <td class="${isEaten ? 'status-eaten' : 'status-missing'}">${isEaten ? 'Eaten ✓' : 'Not Eaten ❌'}</td>
+        `;
+        tbody.appendChild(tr);
+    });
 }

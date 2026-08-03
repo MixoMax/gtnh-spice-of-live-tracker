@@ -1,3 +1,6 @@
+================================================
+FILE: static/index.html
+================================================
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,7 +17,31 @@
         <section id="players-section">
             <h2>Active Players</h2>
             <div id="players-list" class="grid">
-                <!-- Javascript injects player cards here -->
+                <!-- Initial Skeleton Cards -->
+                <div class="player-card">
+                    <div class="skeleton skeleton-img"></div>
+                    <div class="skeleton skeleton-title"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-btn"></div>
+                </div>
+                <div class="player-card">
+                    <div class="skeleton skeleton-img"></div>
+                    <div class="skeleton skeleton-title"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-btn"></div>
+                </div>
+                <div class="player-card">
+                    <div class="skeleton skeleton-img"></div>
+                    <div class="skeleton skeleton-title"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-btn"></div>
+                </div>
+                <div class="player-card">
+                    <div class="skeleton skeleton-img"></div>
+                    <div class="skeleton skeleton-title"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-btn"></div>
+                </div>
             </div>
         </section>
         
@@ -22,65 +49,88 @@
             <button id="back-btn">← Back to Players</button>
             <div id="player-header"></div>
             
-            <!-- GOOGLE SHEETS REPLICATION LAYOUT -->
-            <div class="dashboard-grid">
-                <!-- LIVE TRACKER (Top Wide Card) -->
-                <div class="card full-width live-tracker">
-                    <h3>LIVE TRACKER</h3>
-                    <div class="tracker-layout">
-                        <div class="tracker-left">
-                            <div><strong>Obtained</strong></div>
-                            <div class="pct-big" id="overall-pct">0.0%</div>
+            <div id="stats-content" style="display: none;">
+                <!-- GOOGLE SHEETS REPLICATION LAYOUT -->
+                <div class="dashboard-grid">
+                    <!-- LIVE TRACKER (Top Wide Card) -->
+                    <div class="card full-width live-tracker">
+                        <h3>LIVE TRACKER</h3>
+                        <div class="tracker-layout">
+                            <div class="tracker-left">
+                                <div><strong>Obtained</strong></div>
+                                <div class="pct-big" id="overall-pct">0.0%</div>
+                            </div>
+                            
+                            <!-- MAIN DONUT -->
+                            <div class="donut donut-main" id="overall-donut" style="--pct: 0%">
+                                <div class="donut-content" id="overall-donut-pct">0.0%</div>
+                            </div>
+
+                            <div class="tracker-right">
+                                <div style="text-align: right"><strong>Remaining</strong></div>
+                                <div class="pct-big" id="overall-remaining-pct" style="color: #999; text-align: right;">100.0%</div>
+                            </div>
                         </div>
                         
-                        <!-- MAIN DONUT -->
-                        <div class="donut donut-main" id="overall-donut" style="--pct: 0%">
-                            <div class="donut-content" id="overall-donut-pct">0.0%</div>
-                        </div>
-
-                        <div class="tracker-right">
-                            <div style="text-align: right"><strong>Remaining</strong></div>
-                            <div class="pct-big" id="overall-remaining-pct" style="color: #999; text-align: right;">100.0%</div>
+                        <div class="tracker-footer">
+                            <div>
+                                <span class="stat-num" id="shanks-remaining">0</span> Shanks Remaining<br>
+                                <span class="stat-num stat-orange" id="shanks-obtained">0</span> Shanks Obtained
+                            </div>
+                            <div style="text-align: center;">
+                                <span class="stat-num" id="hearts-remaining">0</span> Hearts Remaining<br>
+                                <span class="stat-num stat-red" id="hearts-obtained">0</span> Hearts Obtained
+                            </div>
+                            <div style="text-align: right;">
+                                <span class="stat-num">50</span> Shanks per Heart<br>
+                                <span class="stat-num stat-gold" id="until-next">0</span> Until Next Heart
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="tracker-footer">
-                        <div>
-                            <span class="stat-num" id="shanks-remaining">0</span> Shanks Remaining<br>
-                            <span class="stat-num stat-orange" id="shanks-obtained">0</span> Shanks Obtained
-                        </div>
-                        <div style="text-align: center;">
-                            <span class="stat-num" id="hearts-remaining">0</span> Hearts Remaining<br>
-                            <span class="stat-num stat-red" id="hearts-obtained">0</span> Hearts Obtained
-                        </div>
-                        <div style="text-align: right;">
-                            <span class="stat-num">50</span> Shanks per Heart<br>
-                            <span class="stat-num stat-gold" id="until-next">0</span> Until Next Heart
-                        </div>
+
+                    <!-- 4 TIER CHARTS -->
+                    <div id="tier-charts-container" class="tier-charts-grid full-width">
+                        <!-- Javascript injects tier charts here -->
                     </div>
                 </div>
 
-                <!-- 4 TIER CHARTS -->
-                <div id="tier-charts-container" class="tier-charts-grid full-width">
-                    <!-- Javascript injects tier charts here -->
+                <!-- TIER DETAIL -->
+                <div class="card full-width" style="margin-top: 1.5rem;">
+                    <h3>Tier Detail</h3>
+                    <div class="tier-selector" id="tier-selector">
+                        <!-- Buttons injected by JS -->
+                    </div>
+                    <div class="table-container">
+                        <table id="foods-table">
+                            <thead>
+                                <tr>
+                                    <th>Food Name</th>
+                                    <th>Base Hunger</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <!-- DETAIL TABLE -->
-            <div class="card full-width" style="margin-top: 1.5rem;">
-                <h3>History Detail & Tier Progress</h3>
-                <div class="table-container">
-                    <table id="foods-table">
-                        <thead>
-                            <tr>
-                                <th>Name / Raw Tag</th>
-                                <th>Matched Tier</th>
-                                <th>Base Hunger</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
+            <!-- Dashboard Skeletons -->
+            <div id="stats-skeleton">
+                <div class="dashboard-grid">
+                    <div class="card full-width live-tracker" style="height: 350px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 1rem;">
+                        <div class="skeleton" style="width: 200px; height: 200px; border-radius: 50%;"></div>
+                        <div class="skeleton skeleton-text" style="width: 300px; height: 1.5rem; margin: 0;"></div>
+                        <div class="skeleton skeleton-text" style="width: 200px; height: 1rem; margin: 0;"></div>
+                    </div>
+                    <div class="tier-charts-grid full-width">
+                        <div class="card tier-card skeleton" style="height: 220px;"></div>
+                        <div class="card tier-card skeleton" style="height: 220px;"></div>
+                        <div class="card tier-card skeleton" style="height: 220px;"></div>
+                        <div class="card tier-card skeleton" style="height: 220px;"></div>
+                    </div>
+                    <div class="card full-width skeleton" style="height: 400px; margin-top: 1.5rem;"></div>
                 </div>
             </div>
         </section>
