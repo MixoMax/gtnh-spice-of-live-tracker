@@ -1,6 +1,3 @@
-================================================
-FILE: static/app.js
-================================================
 import { Repository } from 'https://shadowtheage.github.io/gtnh/repository.js';
 import { ungzip } from 'https://cdn.jsdelivr.net/npm/pako@2.1.0/+esm';
 
