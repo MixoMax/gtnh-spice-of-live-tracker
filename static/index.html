@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GTNH Spice of Life Stats</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>GTNH Spice of Life Live Stats</h1>
+    </header>
+    <main>
+        <section id="players-section">
+            <h2>Active Players</h2>
+            <div id="players-list" class="grid">
+                <!-- Javascript injects player cards here -->
+            </div>
+        </section>
+        
+        <section id="stats-section" style="display: none;">
+            <button id="back-btn">← Back to Players</button>
+            <div id="player-header"></div>
+            
+            <div class="stats-grid">
+                <div class="card">
+                    <h3>Summary</h3>
+                    <p class="summary-big">Total Foods Eaten: <span id="total-eaten" style="color: var(--primary-color);">0</span></p>
+                </div>
+                <div class="card">
+                    <h3>Categories (Eaten by Mod)</h3>
+                    <ul id="category-list"></ul>
+                </div>
+            </div>
+            
+            <div class="card full-width">
+                <h3>History Detail</h3>
+                <div class="table-container">
+                    <table id="foods-table">
+                        <thead>
+                            <tr>
+                                <th>Name / Raw Tag</th>
+                                <th>Mod Category</th>
+                                <th>Hunger (Half-shanks)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+    <script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+name: gtnh-tracker
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM python:3.11-slim
+        WORKDIR /app
+        COPY requirements.txt .
+        RUN pip install --no-cache-dir -r requirements.txt
+        COPY . .
+        CMD ["python", "server.py"]
+    container_name: gtnh-spice-tracker
+    ports:
+      - "2001:8000"
+    environment:
+      - WORLD_DIR=/world
+      - PYTHONDONTWRITEBYTECODE=1
+    volumes:
+      # MOUNT AS READ-ONLY (:ro) to protect the live GTNH server data
+      - /mnt/ssd/docker-data/mc/gtnh/World:/world:ro
+    
+    # Security: Lock down the container filesystem to prevent local tampering
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
