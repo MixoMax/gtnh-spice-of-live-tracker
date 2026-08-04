@@ -180,7 +180,8 @@ async function showStats(player) {
         const tracker = {
             total_overall_shanks: 0,
             obtained_overall_shanks: 0,
-            tiers: {}
+            tiers: {},
+            isAllStats: false
         };
         
         const TIER_ORDER = ["T1 (Raw)", "T2 (Basic)", "T3 (Intermediate)", "T4 (Advanced)"];
@@ -237,12 +238,19 @@ async function showStats(player) {
         const rem = total - obt;
         
         const pct = total > 0 ? (obt / total * 100).toFixed(1) : 0.0;
-        const remaining_pct = total > 0 ? (rem / total * 100).toFixed(1) : 100.0;
+        const remaining_pct = 100 - pct;
         
-        document.getElementById("overall-pct").textContent = `${pct}%`;
         document.getElementById("overall-remaining-pct").textContent = `${remaining_pct}%`;
-        document.getElementById("overall-donut-pct").textContent = `${pct}%`;
+        document.getElementById("overall-pct").textContent = `${pct}%`;
+        document.getElementById("overall-pct").style.color = "#97c584";
+
+        document.getElementById("overall-pct-any").style.display = "none";
+
+        document.getElementById("overall-donut-any").style.setProperty("--pct", `${pct}%`);
+
         document.getElementById("overall-donut").style.setProperty("--pct", `${pct}%`);
+
+        document.getElementById("overall-donut-pct").textContent =`${pct}%`;
         
         document.getElementById("shanks-remaining").textContent = rem;
         document.getElementById("shanks-obtained").textContent = obt;
@@ -311,21 +319,25 @@ async function showStatsAll(image) {
             loadTiers()
         ]);
         
-        console.log("Combined stats:", resStats);
+        const playerCount = resStats.playerCount || 1;
         const tracker = {
+            playerCount: playerCount,
             total_overall_shanks: 0,
             obtained_overall_shanks: 0,
             tiers: {},
-            eatenFullCount: 0
+            eatenFullCount: 0,
+            foodCounts: {},
+            isAllStats: true
         };
         
         const TIER_ORDER = ["T1 (Raw)", "T2 (Basic)", "T3 (Intermediate)", "T4 (Advanced)"];
 
         for (const [t, data] of Object.entries(tiersBackend)) {
-            tracker.total_overall_shanks += data.total_shanks;
+            tracker.total_overall_shanks += data.total_shanks * playerCount;
             tracker.tiers[t] = {
                 obtained_shanks: 0,
-                total_shanks: data.total_shanks,
+                eatenFullCount: 0,
+                total_shanks: data.total_shanks * playerCount,
                 matched_items: new Set()
             };
         }
@@ -355,8 +367,15 @@ async function showStatsAll(image) {
                         tracker.obtained_overall_shanks += foundShanks;
                         if(f.count === resStats.playerCount) {
                             tracker.eatenFullCount += foundShanks;
+                            tracker.tiers[tierName].eatenFullCount += foundShanks * f.count;
                         }
                     }
+
+                    if (!tracker.foodCounts[tierName]) {
+                        tracker.foodCounts[tierName] = {};
+                    }
+
+                    tracker.foodCounts[tierName][matchKey] = f.count;
                     break;
                 }
             }
@@ -379,10 +398,23 @@ async function showStatsAll(image) {
         const pct = total > 0 ? (fullObt / total * 100).toFixed(1) : 0.0;
         const remaining_pct = 100 - pct;
         
-        document.getElementById("overall-pct").textContent = `${pct}%`;
-        document.getElementById("overall-remaining-pct").textContent = `${remaining_pct}%`;
-        document.getElementById("overall-donut-pct").textContent = `${pct}%`;
-        document.getElementById("overall-donut").style.setProperty("--pct", `${pct}%`);
+        const pctEveryone = (fullObt / total * 100).toFixed(1);
+        const pctAnyone = (obt / total * 100).toFixed(1);
+
+        document.getElementById("overall-remaining-pct").textContent = `${100 - pctAnyone}%`;
+
+        document.getElementById("overall-pct").textContent = `${pctEveryone}%`;
+        document.getElementById("overall-pct").style.color = "#97c584";
+
+        const any = document.getElementById("overall-pct-any");
+        any.style.display = "block";
+        any.textContent = `${pctAnyone}%`;
+
+        document.getElementById("overall-donut-any").style.setProperty("--pct", `${pctAnyone}%`);
+
+        document.getElementById("overall-donut").style.setProperty("--pct", `${pctEveryone}%`);
+
+        document.getElementById("overall-donut-pct").textContent =`${pctEveryone}%`;
         
         document.getElementById("shanks-remaining").textContent = rem;
         document.getElementById("shanks-obtained").textContent = obt;
@@ -401,7 +433,9 @@ async function showStatsAll(image) {
 
         TIER_ORDER.forEach(tier => {
             const data = tracker.tiers[tier];
-            const tPct = data.total_shanks > 0 ? (data.obtained_shanks / data.total_shanks * 100).toFixed(1) : 0;
+            const tPct = data.total_shanks > 0 ? (data.eatenFullCount / data.total_shanks * 100).toFixed(1) : 0;
+
+            const tPctAny = data.total_shanks > 0 ? (data.obtained_shanks / data.total_shanks * 100).toFixed(1): 0;
             const tRem = data.total_shanks - data.obtained_shanks;
             
             const card = document.createElement("div");
@@ -409,8 +443,13 @@ async function showStatsAll(image) {
             card.innerHTML = `
                 <h4>${tier}</h4>
                 <div class="tier-donut-container">
-                    <div class="donut donut-small" style="--pct: ${tPct}%">
-                        <div class="donut-content">${tPct}%</div>
+                    <div class="donut-stack tier-donut-stack">
+                        <div class="donut donut-small donut-any" style="--pct: ${tPctAny}%">
+                            <div class="donut donut-inner-small" style="--pct: ${tPct}%">
+                                <div class="donut-content">${tPct}%</div>
+                                <div class="donut-content-any">${tPctAny}%</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="tier-stats">
@@ -467,22 +506,58 @@ function renderTierTable(tier) {
     // Sort logic to easily find missing foods! 
     // Missing foods (false) appear at the top, then sorts by name
     foods.sort((a, b) => {
-        const aEaten = matchedSet.has(a[0]);
-        const bEaten = matchedSet.has(b[0]);
-        if (aEaten === bEaten) {
-            return a[0].localeCompare(b[0]);
+        // Stats All: sort by players missing (descending)
+        if (currentTracker.isAllStats) {
+            const aEaten = currentTracker.foodCounts?.[tier]?.[a[0]] || 0;
+            const bEaten = currentTracker.foodCounts?.[tier]?.[b[0]] || 0;
+
+            const aMissing = currentTracker.playerCount - aEaten;
+            const bMissing = currentTracker.playerCount - bEaten;
+
+            if (aMissing !== bMissing) {
+                return bMissing - aMissing;
+            }
+        } 
+        // Normal player stats: missing first
+        else {
+            const aEaten = matchedSet.has(a[0]);
+            const bEaten = matchedSet.has(b[0]);
+
+            if (aEaten !== bEaten) {
+                return aEaten ? 1 : -1;
+            }
         }
-        return aEaten ? 1 : -1;
+
+        return a[0].localeCompare(b[0]);
     });
 
     foods.forEach(([foodName, shanks]) => {
         const isEaten = matchedSet.has(foodName);
         const tr = document.createElement("tr");
-        
+
+        let statusText;
+        let statusClass;
+
+        if (currentTracker.isAllStats) {
+            const eatenCount = currentTracker.foodCounts?.[tier]?.[foodName] || 0;
+            const missingCount = currentTracker.playerCount - eatenCount;
+
+            statusText = missingCount > 0
+                ? `${missingCount} Missing ❌`
+                : "Everyone Ate ✓";
+
+            statusClass = missingCount > 0
+                ? "status-missing"
+                : "status-eaten";
+        } else {
+            statusText = isEaten ? "Eaten ✓" : "Not Eaten ❌";
+            statusClass = isEaten ? "status-eaten" : "status-missing";
+        }
+
         tr.innerHTML = `
             <td><strong>${foodName}</strong></td>
             <td>${shanks}</td>
-            <td class="${isEaten ? 'status-eaten' : 'status-missing'}">${isEaten ? 'Eaten ✓' : 'Not Eaten ❌'}</td>
+            <td class="${statusClass}">${statusText}</td>
         `;
         tbody.appendChild(tr);
     });
