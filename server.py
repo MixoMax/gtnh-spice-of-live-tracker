@@ -482,6 +482,58 @@ def get_players():
             })
     return {"players": players}
 
+@app.get("/api/stats/all")
+def get_combined_player_stats():
+    players = get_players()["players"]
+    playerCount = len(players)
+    if(playerCount == 0):
+        return {"error": "No players found"}
+    returnData = {
+            "playerCount": playerCount,
+            "total_eaten": 0,
+            "eaten": [],
+            "categories": {},
+            "percentages": {},
+        }
+    for player in players:
+        playerStats = get_player_stats(player["uuid"])
+        if "error" in playerStats:
+            continue
+        returnData["total_eaten"] += playerStats["total_eaten"]
+        for food in playerStats["eaten"]:
+            food_id = food["id"]
+            food_tag = food["tag"]
+            food_damage = food["damage"]
+            food_hunger = food["hunger"]
+            food_mod = food["mod"]
+            #check if the food is already in the list
+            found = False
+            for f in returnData["eaten"]:
+                if f["id"] == food_id and f["damage"] == food_damage:
+                    f["count"] += 1
+                    found = True
+                    break
+            if not found:
+                returnData["eaten"].append({
+                    "id": food_id,
+                    "tag": food_tag,
+                    "damage": food_damage,
+                    "hunger": food_hunger,
+                    "mod": food_mod,
+                    "count": 1
+                })
+        for mod, count in playerStats["categories"].items():
+            returnData["categories"][mod] = returnData["categories"].get(mod, 0) + count
+
+    total_eaten = returnData["total_eaten"]
+    percentages = {}
+    for mod, count in returnData["categories"].items():
+        percentages[mod] = round((count / total_eaten) * 100, 2) if total_eaten > 0 else 0
+    returnData["percentages"] = percentages
+
+    return returnData
+
+
 @app.get("/api/stats/{uuid}")
 def get_player_stats(uuid: str):
     """Generates and returns Spice of Life stats for a player."""
