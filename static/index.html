@@ -56,17 +56,25 @@
                             <div class="tracker-left">
                                 <div><strong>Obtained</strong></div>
                                 <div class="pct-big" id="overall-pct">0.0%</div>
+
+                                <div class="pct-small" id="overall-pct-any" style="display:none">0.0%</div>
                             </div>
                             
                             <!-- MAIN DONUT -->
-                            <div class="donut donut-main" id="overall-donut" style="--pct: 0%">
-                                <div class="donut-content" id="overall-donut-pct">0.0%</div>
+                            <div class="donut-stack">
+                                <div class="donut donut-main donut-any" id="overall-donut-any" style="--pct:0%">
+                                    <div class="donut donut-inner" id="overall-donut" style="--pct:0%">
+                                        <div class="donut-content" id="overall-donut-pct">0.0%</div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="tracker-right">
                                 <div style="text-align: right"><strong>Remaining</strong></div>
                                 <div class="pct-big" id="overall-remaining-pct" style="color: #999; text-align: right;">100.0%</div>
+                                <div class="pct-small" id="overall-pct-any" style="display:none">0.0%</div>
                             </div>
+
                         </div>
                         
                         <div class="tracker-footer">
